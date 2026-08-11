@@ -1,4 +1,4 @@
-# KasirKu 🎀 — Kasir Sederhana
+# Kasir Duta Graha 🎀 — Kasir Sederhana
 
 Aplikasi kasir ringan berbasis web (single-file HTML) — tanpa backend, tanpa instalasi.
 

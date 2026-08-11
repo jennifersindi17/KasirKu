@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KasirKu 🎀 — Kasir Sederhana</title>
+<title>Kasir Duta Graha 🎀 — Kasir Sederhana</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -642,7 +642,7 @@
 <body>
 
 <div class="sidebar">
-  <div class="brand">Kasir<span class="dot">Ku</span><span class="sparkle">✨</span></div>
+  <div class="brand">Kasir Duta <span class="dot">Graha</span><span class="sparkle">✨</span></div>
   <div class="brand-sub">Kasir Kesayanganmu</div>
 
   <div class="cashier-box">
@@ -913,7 +913,7 @@ const fmtRp = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
 /* ============ STORAGE BRIDGE ============ */
-/* KasirKu awalnya dirancang memakai window.storage bawaan platform.
+/* Kasir Duta Graha awalnya dirancang memakai window.storage bawaan platform.
    Di GitHub Pages (standalone) bridge ini menggantikannya dengan localStorage
    sehingga semua data tetap tersimpan otomatis di perangkat pengguna.
    Kontrak API (dipakai di seluruh app):
@@ -2104,7 +2104,7 @@ function escapeHtml(str){
 /* ============ KIRIM WHATSAPP ============ */
 function buildReceiptText(trx){
   const lines = [];
-  lines.push('*KasirKu* 🎀');
+  lines.push('*Kasir Duta Graha* 🎀');
   lines.push(`No. Struk: ${trx.receiptNo}`);
   lines.push(`Kasir: ${trx.cashier || '-'}`);
   lines.push(`Tanggal: ${new Date(trx.date).toLocaleString('id-ID',{dateStyle:'medium', timeStyle:'short'})}`);
@@ -2157,7 +2157,7 @@ function printReceipt(mode, trx){
 
   const printArea = document.getElementById('printArea');
   printArea.innerHTML = `
-    <div class="print-shop">KasirKu</div>
+    <div class="print-shop">Kasir Duta Graha</div>
     <div class="print-tag">${mode==='preview' ? '— PRATINJAU STRUK (Belum Dibayar) —' : '— Struk Pembayaran —'}</div>
     <div class="print-sep"></div>
     <div class="print-meta">
