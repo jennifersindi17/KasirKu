@@ -10,19 +10,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#FFF6FA;
-    --ink:#5A3449;
-    --ink-soft:#AD7E96;
-    --till-green:#FF6F9C;
-    --till-green-dark:#E2447A;
-    --amber:#B892FF;
-    --shell:#4A2B45;
-    --shell-soft:#663A5E;
-    --line:#F6D9E6;
-    --danger:#E8617D;
+    --paper:#F7F8F6;
+    --ink:#263238;
+    --ink-soft:#68747C;
+    --till-green:#F28C28;
+    --till-green-dark:#D97716;
+    --amber:#F5B942;
+    --shell:#174A63;
+    --shell-soft:#1E5B78;
+    --line:#E2E6E8;
+    --danger:#D9534F;
     --card:#FFFFFF;
-    --mint:#8FE0C9;
-    --gold:#FFC857;
+    --mint:#3FA66B;
+    --gold:#F5B942;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;height:100%;}
@@ -40,8 +40,8 @@
   .sidebar{
     width:220px;
     flex:0 0 220px;
-    background:linear-gradient(165deg,var(--shell) 0%, var(--shell-soft) 55%, #7A4468 100%);
-    color:#FFEAF3;
+    background:linear-gradient(165deg,var(--shell) 0%, var(--shell-soft) 55%, #143E54 100%);
+    color:#D6E4EB;
     padding:28px 18px;
     display:flex;
     flex-direction:column;
@@ -65,7 +65,7 @@
   .brand .sparkle{font-size:15px;margin-left:2px;}
   .brand-sub{
     font-size:11px;
-    color:#D9A9C5;
+    color:#A9C3D2;
     margin-bottom:28px;
     letter-spacing:.08em;
     text-transform:uppercase;
@@ -80,7 +80,7 @@
     border-radius:14px;
     font-size:14px;
     font-weight:500;
-    color:#F0C9DE;
+    color:#CFE0E8;
     transition:background .15s ease, color .15s ease;
   }
   .nav-btn svg{width:17px;height:17px;flex:0 0 17px;opacity:.85;}
@@ -91,7 +91,7 @@
   .sidebar-foot{
     margin-top:auto;
     font-size:11px;
-    color:#B983A8;
+    color:#8FAEBD;
     line-height:1.5;
     padding-top:20px;
     border-top:1px solid rgba(255,255,255,.08);
@@ -107,7 +107,7 @@
     font-size:10.5px;
     text-transform:uppercase;
     letter-spacing:.06em;
-    color:#D9A9C5;
+    color:#A9C3D2;
     margin-bottom:6px;
     display:flex;
     align-items:center;
@@ -128,7 +128,7 @@
   .cashier-box input:focus{outline:2px solid var(--gold);}
   .clock{
     font-family:'Space Mono',monospace;
-    color:#F0C9DE;
+    color:#CFE0E8;
     font-size:12px;
     margin-bottom:4px;
   }
@@ -146,7 +146,7 @@
     align-items:flex-end;
     justify-content:space-between;
     margin-bottom:22px;
-    color:#FFEAF3;
+    color:#D6E4EB;
   }
   .page-title{
     font-family:'Fredoka',sans-serif;
@@ -156,7 +156,7 @@
   }
   .page-sub{
     font-size:13px;
-    color:#D9A9C5;
+    color:#A9C3D2;
     margin-top:4px;
   }
 
@@ -220,7 +220,7 @@
   }
   .product-card:hover{
     transform:translateY(-2px);
-    box-shadow:0 6px 16px rgba(226,68,122,.16);
+    box-shadow:0 6px 16px rgba(217,119,22,.16);
     border-color:var(--till-green);
   }
   .product-card .pname{font-weight:600;font-size:13.5px;line-height:1.3;}
@@ -248,9 +248,9 @@
     font-weight:700;
     font-family:'Space Mono',monospace;
   }
-  .stock-badge.ok{background:#DFF6EC;color:#1F8A5C;}
-  .stock-badge.low{background:#FFE9CC;color:#B5720C;}
-  .stock-badge.empty{background:#FBDCE3;color:var(--danger);}
+  .stock-badge.ok{background:#E3F4EA;color:#2E8B57;}
+  .stock-badge.low{background:#FBF0DC;color:#B5720C;}
+  .stock-badge.empty{background:#FADFDC;color:var(--danger);}
 
   /* ---------- Gudang & Stock Opname ---------- */
   .wh-total-badge{
@@ -350,7 +350,7 @@
   }
   .receipt-head .t1{font-size:15px;font-weight:600;}
   .receipt-head .t1::before{content:"🎀 ";}
-  .receipt-head .t2{font-size:11px;color:#D9A9C5;margin-top:2px;font-family:'Space Mono',monospace;}
+  .receipt-head .t2{font-size:11px;color:#84949E;margin-top:2px;font-family:'Space Mono',monospace;}
   .receipt-body{
     padding:20px 18px 16px;
     font-family:'Space Mono',monospace;
@@ -459,10 +459,10 @@
   .btn-primary{
     background:linear-gradient(135deg,var(--till-green) 0%, var(--amber) 100%);
     color:#fff;width:100%;margin-top:6px;
-    box-shadow:0 6px 16px rgba(226,68,122,.35);
+    box-shadow:0 6px 16px rgba(217,119,22,.35);
   }
-  .btn-primary:hover{filter:brightness(1.06);box-shadow:0 8px 20px rgba(226,68,122,.45);}
-  .btn-primary:disabled{background:#F3C6DA;box-shadow:none;cursor:not-allowed;filter:none;}
+  .btn-primary:hover{filter:brightness(1.06);box-shadow:0 8px 20px rgba(217,119,22,.45);}
+  .btn-primary:disabled{background:#F5CD9B;box-shadow:none;cursor:not-allowed;filter:none;}
   .btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);font-weight:500;}
   .btn-ghost:hover{border-color:var(--danger);color:var(--danger);}
   .btn-secondary{background:var(--paper);color:var(--ink);border:1px solid var(--line);}
@@ -500,7 +500,7 @@
     border-bottom:2px solid var(--line);
   }
   tbody td{padding:11px 10px;border-bottom:1px solid var(--line);}
-  tbody tr:hover{background:#F2EEE1;}
+  tbody tr:hover{background:#F2F4F2;}
   .price-cell{font-family:'Space Mono',monospace;font-weight:600;}
   .row-actions{display:flex;gap:8px;}
   .icon-btn{
@@ -555,7 +555,7 @@
     font-size:11px;
     padding:3px 9px;
     border-radius:999px;
-    background:#FDE4EE;
+    background:#FDF1E0;
     color:var(--till-green-dark);
     font-weight:600;
   }
@@ -579,7 +579,7 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-  .loading-note{color:#D9A9C5;font-size:13px;padding:10px 0;}
+  .loading-note{color:#84949E;font-size:13px;padding:10px 0;}
 
   /* ---------- Done / checkout success state ---------- */
   .done-state{
@@ -1875,8 +1875,8 @@ function renderRevenueChart(groups){
       datasets: [{
         label: 'Pendapatan',
         data: groups.map(g=>g.revenue),
-        backgroundColor: '#FF6F9C',
-        hoverBackgroundColor: '#E2447A',
+        backgroundColor: '#F28C28',
+        hoverBackgroundColor: '#D97716',
         borderRadius: 8,
         maxBarThickness: 46
       }]
@@ -1887,7 +1887,7 @@ function renderRevenueChart(groups){
       plugins: {
         legend: { display:false },
         tooltip: {
-          backgroundColor:'#4A2B45',
+          backgroundColor:'#174A63',
           padding:10,
           callbacks:{
             label: ctx => fmtRp(ctx.parsed.y),
@@ -1896,11 +1896,11 @@ function renderRevenueChart(groups){
         }
       },
       scales: {
-        x: { grid:{display:false}, ticks:{color:'#AD7E96', font:{family:'Quicksand'}} },
+        x: { grid:{display:false}, ticks:{color:'#68747C', font:{family:'Quicksand'}} },
         y: {
-          grid:{color:'#F6D9E6'},
+          grid:{color:'#E2E6E8'},
           ticks:{
-            color:'#AD7E96', font:{family:'Space Mono', size:10.5},
+            color:'#68747C', font:{family:'Space Mono', size:10.5},
             callback: v => v>=1000000 ? (v/1000000)+'jt' : (v>=1000 ? (v/1000)+'rb' : v)
           }
         }
