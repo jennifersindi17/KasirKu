@@ -593,6 +593,25 @@
     color:var(--till-green-dark);
     font-weight:600;
   }
+  .badge-hutang{background:#FFF3E0;color:#B26A00;font-weight:700;}
+  .badge-lunas{background:#E6F6EC;color:#1E7A4D;font-weight:700;}
+  .pay-mode-row{display:flex;gap:8px;margin-bottom:12px;}
+  .pay-mode-row .mode-btn{flex:1;padding:9px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink-soft);font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;}
+  .pay-mode-row .mode-btn.active{border-color:var(--till-green);background:var(--till-green);color:#fff;}
+  .credit-fields{display:none;margin-bottom:12px;padding:10px 12px;border:1.5px dashed var(--line);border-radius:12px;background:var(--paper);}
+  .credit-fields.show{display:block;}
+  .credit-fields label{font-size:11px;color:var(--ink-soft);display:block;margin:6px 0 3px;}
+  .credit-fields input{width:100%;}
+  .credit-fields .sisa-line{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--till-green-dark);margin-top:8px;}
+  .piutang-actions{display:flex;gap:6px;justify-content:flex-end;}
+  .pay-form-row{margin-bottom:10px;}
+  .pay-form-row label{display:block;font-size:11px;color:var(--ink-soft);margin-bottom:4px;}
+  .pay-form-row input{width:100%;}
+  .pay-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);}
+  .pay-row:last-child{border-bottom:none;}
+  .pay-row .pr-label{font-size:13px;font-weight:600;}
+  .pay-row .pr-date{font-size:11px;color:var(--ink-soft);}
+  .pay-row .pr-amount{font-weight:700;color:var(--till-green-dark);}
 
   .toast{
     position:fixed;
@@ -699,6 +718,10 @@
   <button class="nav-btn" data-view="opname">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
     Stock Opname
+  </button>
+  <button class="nav-btn" data-view="piutang">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    Piutang
   </button>
   <button class="nav-btn" data-view="laporan">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
@@ -852,6 +875,40 @@
         <tbody id="opnameHistoryBody"></tbody>
       </table>
       <div class="empty-note" id="opnameHistoryEmptyNote" style="display:none;">Belum ada riwayat stock opname.</div>
+    </div>
+  </div>
+
+  <!-- ===== VIEW: PIUTANG ===== -->
+  <div class="view" id="view-piutang">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Piutang 🧾</h1>
+        <div class="page-sub">Transaksi hutang pelanggan — DP, sisa &amp; angsuran</div>
+      </div>
+    </div>
+
+    <div class="summary-cards">
+      <div class="stat-card"><div class="label">Total Piutang Belum Dibayar</div><div class="value" id="piutangOutstanding">Rp 0</div></div>
+      <div class="stat-card"><div class="label">Pelanggan Berhutang</div><div class="value" id="piutangCount">0</div></div>
+      <div class="stat-card"><div class="label">Total Piutang Sudah Lunas</div><div class="value" id="piutangPaid">Rp 0</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="filter-bar">
+        <div class="chips" id="piutangFilterChips">
+          <button class="chip active" data-piutang-filter="semua">Semua</button>
+          <button class="chip" data-piutang-filter="hutang">Masih Hutang</button>
+          <button class="chip" data-piutang-filter="lunas">Sudah Lunas</button>
+        </div>
+        <div class="spacer"></div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>No. Struk</th><th>Pelanggan</th><th>Tanggal</th><th>Total</th><th>DP</th><th>Sisa</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="piutangTableBody"></tbody>
+      </table>
+      <div class="empty-note" id="piutangEmptyNote" style="display:none;">Belum ada transaksi hutang.</div>
     </div>
   </div>
 
@@ -1087,6 +1144,7 @@ document.querySelectorAll('.nav-btn').forEach(btn=>{
     if(btn.dataset.view==='produk') renderProdukTable();
     if(btn.dataset.view==='gudang') renderGudangView();
     if(btn.dataset.view==='opname') renderOpnameView();
+    if(btn.dataset.view==='piutang') renderPiutang();
   });
 });
 
@@ -1174,6 +1232,16 @@ document.getElementById('searchInput').addEventListener('input', e=>{
 let lastCompletedTrx = null;
 let showDone = false;
 let discAllRate = 0; // diskon menyeluruh (% dari subtotal setelah diskon per produk)
+let payMode = 'lunas'; // 'lunas' | 'hutang'
+let piutangFilter = 'semua'; // 'semua' | 'hutang' | 'lunas'
+
+function trxStatus(t){
+  if(t.paymentMode !== 'hutang') return 'lunas';
+  return (t.remaining||0) > 0 ? 'hutang' : 'lunas';
+}
+function trxRemaining(t){
+  return t.paymentMode === 'hutang' ? Math.max(0, t.remaining||0) : 0;
+}
 
 function lineSubtotal(item){ return item.price * item.qty; }
 function lineDiscRate(item){ return Math.min(100, Math.max(0, Number(item.disc)||0)); }
@@ -1329,11 +1397,17 @@ function renderCart(){
     receiptBody.innerHTML = `
       <div class="done-state">
         <div class="done-icon">🎀</div>
-        <div class="done-title">Pembayaran Berhasil</div>
+        <div class="done-title">${t.paymentMode==='hutang' ? 'Transaksi Hutang Dicatat' : 'Pembayaran Berhasil'}</div>
         <div class="done-sub">${t.receiptNo} · Kasir: ${escapeHtml(t.cashier || '-')}</div>
         <div class="done-total">${fmtRp(t.total)}</div>
-        <div class="totals-row"><span>Diterima</span><span>${fmtRp(t.cash)}</span></div>
-        <div class="totals-row"><span>Kembalian</span><span>${fmtRp(t.change)}</span></div>
+        ${t.paymentMode==='hutang' ? `
+          <div class="totals-row"><span>Pelanggan</span><span>${escapeHtml(t.customerName || '-')}</span></div>
+          <div class="totals-row"><span>Uang Muka (DP)</span><span>${fmtRp(t.dp)}</span></div>
+          <div class="totals-row"><span>${trxStatus(t)==='lunas' ? 'Status' : 'Sisa tagihan'}</span><span>${trxStatus(t)==='lunas' ? '✅ Lunas' : fmtRp(trxRemaining(t))}</span></div>
+        ` : `
+          <div class="totals-row"><span>Diterima</span><span>${fmtRp(t.cash)}</span></div>
+          <div class="totals-row"><span>Kembalian</span><span>${fmtRp(t.change)}</span></div>
+        `}
         <div class="pay-block" style="margin-top:14px;text-align:left;">
           <label for="waPhoneInput">No. WhatsApp pelanggan (opsional)</label>
           <input type="tel" id="waPhoneInput" placeholder="08xxxxxxxxxx">
@@ -1363,9 +1437,24 @@ function renderCart(){
     <div class="totals-row discall-row"><span>Diskon semua <input type="number" id="discAllInput" class="discall-input" min="0" max="100" value="0" title="Diskon menyeluruh dari subtotal (%)"> %</span><span id="discAllVal">Rp 0</span></div>
     <div class="totals-row grand"><span>Total</span><span id="cartTotal">Rp 0</span></div>
     <div class="pay-block">
-      <label for="cashInput">Uang diterima</label>
-      <input type="number" id="cashInput" placeholder="0" min="0">
-      <div class="change-line" id="changeLine"><span>Kembalian</span><span>Rp 0</span></div>
+      <div class="pay-mode-row">
+        <button class="mode-btn active" id="modeLunasBtn">💵 Lunas</button>
+        <button class="mode-btn" id="modeHutangBtn">📝 Hutang</button>
+      </div>
+      <div id="cashFields">
+        <label for="cashInput">Uang diterima</label>
+        <input type="number" id="cashInput" placeholder="0" min="0">
+        <div class="change-line" id="changeLine"><span>Kembalian</span><span>Rp 0</span></div>
+      </div>
+      <div class="credit-fields" id="creditFields">
+        <label for="creditNameInput">Nama pelanggan</label>
+        <input type="text" id="creditNameInput" placeholder="Nama orang yang hutang">
+        <label for="creditPhoneInput">No. WhatsApp (opsional)</label>
+        <input type="tel" id="creditPhoneInput" placeholder="08xxxxxxxxxx">
+        <label for="creditDpInput">Uang muka (DP)</label>
+        <input type="number" id="creditDpInput" placeholder="0" min="0">
+        <div class="sisa-line"><span>Sisa pembayaran</span><span id="creditRemaining">Rp 0</span></div>
+      </div>
       <button class="btn btn-primary" id="checkoutBtn" disabled>Selesaikan Transaksi</button>
       <div class="receipt-actions">
         <button class="btn btn-ghost" id="printPreviewBtn">🖨 Print Pratinjau</button>
@@ -1453,9 +1542,14 @@ function wireCartControls(){
     discAllRate = Math.min(100, Math.max(0, Number(document.getElementById('discAllInput').value)||0));
     updateCartTotals();
   });
+  document.getElementById('modeLunasBtn').addEventListener('click', ()=>setPayMode('lunas'));
+  document.getElementById('modeHutangBtn').addEventListener('click', ()=>setPayMode('hutang'));
+  document.getElementById('creditNameInput').addEventListener('input', updateChange);
+  document.getElementById('creditDpInput').addEventListener('input', updateChange);
   document.getElementById('clearCartBtn').addEventListener('click', ()=>{
     cart = [];
     discAllRate = 0;
+    if(payMode !== 'lunas') setPayMode('lunas');
     document.getElementById('cashInput').value = '';
     renderCart();
   });
@@ -1467,6 +1561,16 @@ function wireCartControls(){
 }
 function updateChange(){
   const total = cartTotal();
+  if(payMode === 'hutang'){
+    const dp = Number(document.getElementById('creditDpInput').value)||0;
+    const remaining = Math.max(0, total - dp);
+    const remEl = document.getElementById('creditRemaining');
+    if(remEl) remEl.textContent = fmtRp(remaining);
+    const name = (document.getElementById('creditNameInput').value||'').trim();
+    const btn = document.getElementById('checkoutBtn');
+    btn.disabled = cart.length===0 || !name || dp > total;
+    return;
+  }
   const cash = Number(document.getElementById('cashInput').value) || 0;
   const change = cash - total;
   const line = document.getElementById('changeLine');
@@ -1475,6 +1579,35 @@ function updateChange(){
   const btn = document.getElementById('checkoutBtn');
   btn.disabled = cart.length===0 || cash < total;
 }
+function setPayMode(mode){
+  payMode = mode;
+  document.getElementById('modeLunasBtn').classList.toggle('active', mode==='lunas');
+  document.getElementById('modeHutangBtn').classList.toggle('active', mode==='hutang');
+  document.getElementById('cashFields').style.display = mode==='lunas' ? 'block' : 'none';
+  document.getElementById('creditFields').classList.toggle('show', mode==='hutang');
+  updateChange();
+}
+function validateStockBeforeCheckout(){
+  for(const item of cart){
+    const p = products.find(x=>x.id===item.id);
+    if(!p || totalStock(p) < item.qty){
+      showToast(`Stok "${item.name}" tidak mencukupi`);
+      return false;
+    }
+    const allocSum = Object.values(item.allocations||{}).reduce((s,v)=>s+v,0);
+    if(allocSum !== item.qty){
+      showToast(`Alokasi gudang "${item.name}" belum lengkap — cek keranjang`);
+      return false;
+    }
+    for(const [whId, qty] of Object.entries(item.allocations||{})){
+      if(stockAt(p, whId) < qty){
+        showToast(`Stok "${item.name}" di ${whName(whId)} tidak cukup`);
+        return false;
+      }
+    }
+  }
+  return true;
+}
 async function doCheckout(){
   const subtotal = cartSubtotal();
   const lineDisc = cartLineDisc();
@@ -1482,45 +1615,62 @@ async function doCheckout(){
   const discAmount = lineDisc + allDisc;
   const total = cartTotal();
   const cash = Number(document.getElementById('cashInput').value) || 0;
-  if(cart.length===0 || cash < total) return;
+  if(cart.length===0) return;
 
-  // validasi stok & alokasi gudang final sebelum menyimpan
-  for(const item of cart){
-    const p = products.find(x=>x.id===item.id);
-    if(!p || totalStock(p) < item.qty){
-      showToast(`Stok "${item.name}" tidak mencukupi`);
-      return;
-    }
-    const allocSum = Object.values(item.allocations||{}).reduce((s,v)=>s+v,0);
-    if(allocSum !== item.qty){
-      showToast(`Alokasi gudang "${item.name}" belum lengkap — cek keranjang`);
-      return;
-    }
-    for(const [whId, qty] of Object.entries(item.allocations||{})){
-      if(stockAt(p, whId) < qty){
-        showToast(`Stok "${item.name}" di ${whName(whId)} tidak cukup`);
-        return;
-      }
-    }
+  let trx;
+  if(payMode === 'hutang'){
+    const dpVal = Math.min(total, Math.max(0, Number(document.getElementById('creditDpInput').value)||0));
+    const name = (document.getElementById('creditNameInput').value||'').trim();
+    if(!name){ showToast('Isi nama pelanggan yang hutang'); return; }
+    if(dpVal > total){ showToast('DP tidak boleh melebihi total'); return; }
+    const remaining = total - dpVal;
+    if(!validateStockBeforeCheckout()) return;
+    trx = {
+      id: uid(),
+      receiptNo: 'TRX-' + Date.now().toString().slice(-8),
+      date: new Date().toISOString(),
+      cashier: cashierName.trim() || 'Tidak diketahui',
+      items: cart.map(c=>({
+        name:c.name, price:c.price, qty:c.qty, disc:c.disc||0,
+        subtotal:lineSubtotal(c), lineTotal:lineAfterDisc(c), discAmount:lineDiscAmount(c),
+        allocations: Object.entries(c.allocations||{}).map(([whId,qty])=>({whId, whName:whName(whId), qty}))
+      })),
+      subtotal,
+      discAmount,
+      discAll: discAllRate,
+      total,
+      paymentMode: 'hutang',
+      customerName: name,
+      customerPhone: (document.getElementById('creditPhoneInput').value||'').trim(),
+      dp: dpVal,
+      remaining,
+      payments: [{amount: dpVal, date: new Date().toISOString()}],
+      status: remaining > 0 ? 'hutang' : 'lunas',
+      cash: dpVal,
+      change: 0
+    };
+  }else{
+    if(cash < total) return;
+    if(!validateStockBeforeCheckout()) return;
+    trx = {
+      id: uid(),
+      receiptNo: 'TRX-' + Date.now().toString().slice(-8),
+      date: new Date().toISOString(),
+      cashier: cashierName.trim() || 'Tidak diketahui',
+      items: cart.map(c=>({
+        name:c.name, price:c.price, qty:c.qty, disc:c.disc||0,
+        subtotal:lineSubtotal(c), lineTotal:lineAfterDisc(c), discAmount:lineDiscAmount(c),
+        allocations: Object.entries(c.allocations||{}).map(([whId,qty])=>({whId, whName:whName(whId), qty}))
+      })),
+      subtotal,
+      discAmount,
+      discAll: discAllRate,
+      total,
+      paymentMode: 'lunas',
+      cash,
+      change: cash-total
+    };
   }
-
-  const trx = {
-    id: uid(),
-    receiptNo: 'TRX-' + Date.now().toString().slice(-8),
-    date: new Date().toISOString(),
-    cashier: cashierName.trim() || 'Tidak diketahui',
-    items: cart.map(c=>({
-      name:c.name, price:c.price, qty:c.qty, disc:c.disc||0,
-      subtotal:lineSubtotal(c), lineTotal:lineAfterDisc(c), discAmount:lineDiscAmount(c),
-      allocations: Object.entries(c.allocations||{}).map(([whId,qty])=>({whId, whName:whName(whId), qty}))
-    })),
-    subtotal,
-    discAmount,
-    discAll: discAllRate,
-    total,
-    cash,
-    change: cash-total
-  };
   transactions.unshift(trx);
 
   // kurangi stok produk yang terjual, sesuai alokasi gudang masing-masing
@@ -1537,6 +1687,7 @@ async function doCheckout(){
 
   cart = [];
   discAllRate = 0;
+  if(payMode !== 'lunas') payMode = 'lunas';
   lastCompletedTrx = trx;
   showDone = true;
   renderCart();
@@ -1898,6 +2049,130 @@ function openOpnameDetailModal(rec){
   document.getElementById('opnameDetailCloseBtn').addEventListener('click', closeModal);
 }
 
+/* ============ PIUTANG ============ */
+function renderPiutang(){
+  document.querySelectorAll('#piutangFilterChips .chip').forEach(c=>{
+    c.classList.toggle('active', c.dataset.piutangFilter === piutangFilter);
+  });
+  const creditTrx = transactions.filter(t=>t.paymentMode==='hutang');
+  const body = document.getElementById('piutangTableBody');
+  body.innerHTML = '';
+  document.getElementById('piutangEmptyNote').style.display = creditTrx.length===0 ? 'block' : 'none';
+
+  let outstanding = 0, paidTotal = 0, debtorCount = 0;
+  const seen = {};
+  creditTrx.forEach(t=>{
+    const st = trxStatus(t);
+    if(st==='hutang'){
+      outstanding += trxRemaining(t);
+      const key = (t.customerName||'?').toLowerCase();
+      if(!seen[key]){ seen[key] = 1; debtorCount++; }
+    }else{
+      paidTotal += t.total;
+    }
+  });
+  document.getElementById('piutangOutstanding').textContent = fmtRp(outstanding);
+  document.getElementById('piutangCount').textContent = debtorCount;
+  document.getElementById('piutangPaid').textContent = fmtRp(paidTotal);
+
+  let list = creditTrx;
+  if(piutangFilter==='hutang') list = creditTrx.filter(t=>trxStatus(t)==='hutang');
+  if(piutangFilter==='lunas') list = creditTrx.filter(t=>trxStatus(t)==='lunas');
+
+  list.forEach(t=>{
+    const st = trxStatus(t);
+    const remaining = trxRemaining(t);
+    const tr = document.createElement('tr');
+    const dt = new Date(t.date);
+    tr.innerHTML = `
+      <td>${t.receiptNo}</td>
+      <td>${escapeHtml(t.customerName||'-')}${t.customerPhone ? `<div class="sub-cell">${escapeHtml(t.customerPhone)}</div>` : ''}</td>
+      <td>${dt.toLocaleDateString('id-ID',{dateStyle:'medium'})}</td>
+      <td class="price-cell">${fmtRp(t.total)}</td>
+      <td class="price-cell">${fmtRp(t.dp||0)}</td>
+      <td class="price-cell ${remaining>0 ? 'text-warn' : ''}">${fmtRp(remaining)}</td>
+      <td><span class="badge ${st==='hutang' ? 'badge-hutang' : 'badge-lunas'}">${st==='hutang' ? '⏳ Hutang' : '✅ Lunas'}</span></td>
+      <td>
+        <div class="piutang-actions">
+          ${st==='hutang' ? `<button class="btn btn-primary pay-btn" style="padding:6px 10px;font-size:12px;">💸 Bayar</button>` : ''}
+          <button class="btn btn-ghost history-btn" style="padding:6px 10px;font-size:12px;">📜 Riwayat</button>
+        </div>
+      </td>
+    `;
+    const payBtn = tr.querySelector('.pay-btn');
+    if(payBtn) payBtn.addEventListener('click', ()=>openPayModal(t));
+    tr.querySelector('.history-btn').addEventListener('click', ()=>openHistoryModal(t));
+    body.appendChild(tr);
+  });
+}
+document.querySelectorAll('#piutangFilterChips .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    piutangFilter = chip.dataset.piutangFilter;
+    renderPiutang();
+  });
+});
+function openPayModal(t){
+  const remaining = trxRemaining(t);
+  const today = new Date().toISOString().slice(0,10);
+  openModal(`
+    <div class="modal-title">💸 Bayar Angsuran</div>
+    <div class="modal-sub">${escapeHtml(t.customerName||'-')} · ${t.receiptNo}<br>Sisa tagihan: <b>${fmtRp(remaining)}</b></div>
+    <div class="pay-form-row">
+      <label>Jumlah bayar</label>
+      <input type="number" id="payAmountInput" min="0" max="${remaining}" value="${remaining}" placeholder="0">
+    </div>
+    <div class="pay-form-row">
+      <label>Tanggal pembayaran</label>
+      <input type="date" id="payDateInput" value="${today}">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="payCancelBtn">Batal</button>
+      <button class="btn btn-primary" id="confirmPayBtn">Simpan Pembayaran</button>
+    </div>
+  `);
+  document.getElementById('payCancelBtn').addEventListener('click', closeModal);
+  document.getElementById('confirmPayBtn').addEventListener('click', async ()=>{
+    const amount = Math.min(remaining, Math.max(0, Number(document.getElementById('payAmountInput').value)||0));
+    if(amount<=0){ showToast('Jumlah pembayaran harus lebih dari 0'); return; }
+    const date = document.getElementById('payDateInput').value;
+    if(!date){ showToast('Pilih tanggal pembayaran'); return; }
+    t.payments.push({amount, date: new Date(date+'T12:00:00').toISOString()});
+    t.remaining = remaining - amount;
+    if(t.remaining<=0){ t.remaining = 0; t.status = 'lunas'; }
+    await saveTransactions();
+    closeModal();
+    renderPiutang();
+    showToast('Angsuran dicatat' + (t.status==='lunas' ? ' — hutang LUNAS 🎉' : ''));
+  });
+}
+function openHistoryModal(t){
+  const all = (t.payments||[]).slice();
+  const dp = all.shift();
+  const angsuran = all.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const payments = dp ? [dp, ...angsuran] : angsuran;
+  const paidTotal = payments.reduce((s,p)=>s+p.amount,0);
+  const rows = payments.map((p,i)=>{
+    const dt = new Date(p.date);
+    const label = i===0 ? 'Uang Muka (DP)' : 'Angsuran #' + i;
+    return `
+      <div class="pay-row">
+        <div><div class="pr-label">${label}</div><div class="pr-date">${dt.toLocaleDateString('id-ID',{dateStyle:'long'})}</div></div>
+        <div class="pr-amount">${fmtRp(p.amount)}</div>
+      </div>`;
+  }).join('');
+  openModal(`
+    <div class="modal-title">📜 Riwayat Pembayaran</div>
+    <div class="modal-sub">${escapeHtml(t.customerName||'-')} · ${t.receiptNo} · Total ${fmtRp(t.total)}</div>
+    <div style="margin:6px 0 10px;max-height:300px;overflow:auto;">${rows || '<div class="modal-sub">Belum ada pembayaran.</div>'}</div>
+    <div class="totals-row grand"><span>Total dibayar</span><span>${fmtRp(paidTotal)}</span></div>
+    <div class="totals-row"><span>Sisa tagihan</span><span>${fmtRp(trxRemaining(t))}</span></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="histCloseBtn">Tutup</button>
+    </div>
+  `);
+  document.getElementById('histCloseBtn').addEventListener('click', closeModal);
+}
+
 /* ============ LAPORAN ============ */
 let reportPeriod = 'day'; // 'day' | 'month' | 'year'
 let revenueChartInstance = null;
@@ -2051,8 +2326,8 @@ function renderLaporan(){
       <td class="kasir-cell">${escapeHtml(t.cashier || '-')}</td>
       <td>${t.items.reduce((s,i)=>s+i.qty,0)} item</td>
       <td class="price-cell">${fmtRp(t.total)}</td>
-      <td class="price-cell">${fmtRp(t.cash)}</td>
-      <td class="price-cell">${fmtRp(t.change)}</td>
+      <td class="price-cell">${fmtRp(t.paymentMode==='hutang' ? (t.dp||0) : t.cash)}</td>
+      <td class="price-cell">${t.paymentMode==='hutang' ? `<span class="badge ${trxStatus(t)==='hutang' ? 'badge-hutang' : 'badge-lunas'}">${trxStatus(t)==='hutang' ? 'Hutang' : 'Lunas'}</span>` : fmtRp(t.change)}</td>
       <td>
         <div class="row-actions">
           <button class="icon-btn print-row-btn" title="Cetak ulang struk">
@@ -2154,6 +2429,11 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
     'Jumlah Item': t.items.reduce((s,i)=>s+i.qty,0),
     'Diskon (Rp)': t.discAmount || 0,
     'Total (Rp)': t.total,
+    'Metode': t.paymentMode==='hutang' ? 'Hutang' : 'Lunas',
+    'Pelanggan': t.paymentMode==='hutang' ? (t.customerName||'-') : '-',
+    'DP (Rp)': t.paymentMode==='hutang' ? (t.dp||0) : t.cash,
+    'Sisa (Rp)': t.paymentMode==='hutang' ? trxRemaining(t) : 0,
+    'Status': t.paymentMode==='hutang' ? (trxStatus(t)==='lunas' ? 'LUNAS' : 'HUTANG') : 'LUNAS',
     'Bayar (Rp)': t.cash,
     'Kembalian (Rp)': t.change
   }));
@@ -2223,8 +2503,16 @@ function buildReceiptText(trx){
   lines.push('');
   if(trx.discAmount>0) lines.push(`Diskon: −${fmtRp(trx.discAmount)}`);
   lines.push(`Total: *${fmtRp(trx.total)}*`);
-  lines.push(`Bayar: ${fmtRp(trx.cash)}`);
-  lines.push(`Kembali: ${fmtRp(trx.change)}`);
+  if(trx.paymentMode==='hutang'){
+    lines.push(`Pelanggan: ${trx.customerName || '-'}`);
+    lines.push(`Uang Muka (DP): ${fmtRp(trx.dp||0)}`);
+    lines.push(trxStatus(trx)==='lunas'
+      ? 'Status: *LUNAS* ✅'
+      : `Sisa tagihan: ${fmtRp(trxRemaining(trx))} — belum lunas ⏳`);
+  }else{
+    lines.push(`Bayar: ${fmtRp(trx.cash)}`);
+    lines.push(`Kembali: ${fmtRp(trx.change)}`);
+  }
   lines.push('');
   lines.push('Terima kasih atas kunjungan Anda 💕');
   return lines.join('\n');
@@ -2283,8 +2571,15 @@ function printReceipt(mode, trx){
     <div class="print-sep"></div>
     <div class="print-line print-total"><span>TOTAL</span><span>${fmtRp(total)}</span></div>
     ${mode==='final' ? `
-      <div class="print-line"><span>Bayar</span><span>${fmtRp(trx.cash)}</span></div>
-      <div class="print-line"><span>Kembali</span><span>${fmtRp(trx.change)}</span></div>
+      ${trx.paymentMode==='hutang' ? `
+        <div class="print-line"><span>Pelanggan</span><span>${escapeHtml(trx.customerName||'-')}</span></div>
+        <div class="print-line"><span>Uang Muka (DP)</span><span>${fmtRp(trx.dp||0)}</span></div>
+        <div class="print-line"><span>Sisa ${trxStatus(trx)==='lunas' ? '' : 'tagihan'}</span><span>${fmtRp(trxRemaining(trx))}</span></div>
+        <div class="print-line"><span>Status</span><span>${trxStatus(trx)==='lunas' ? 'LUNAS ✅' : 'BELUM LUNAS ⏳'}</span></div>
+      ` : `
+        <div class="print-line"><span>Bayar</span><span>${fmtRp(trx.cash)}</span></div>
+        <div class="print-line"><span>Kembali</span><span>${fmtRp(trx.change)}</span></div>
+      `}
     ` : ''}
     <div class="print-sep"></div>
     <div class="print-footer">${mode==='preview' ? 'Struk ini belum merupakan bukti pembayaran' : 'Terima kasih atas kunjungan Anda 💕'}</div>
@@ -2308,6 +2603,7 @@ async function init(){
   renderProdukTable();
   renderGudangView();
   renderOpnameView();
+  renderPiutang();
   renderLaporan();
 }
 init();
