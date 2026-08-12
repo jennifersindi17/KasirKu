@@ -424,6 +424,18 @@
     background:#fff;
   }
   .disc-row .disc-input:focus{outline:2px solid var(--gold);border-color:var(--till-green);}
+  .disc-type-select{
+    width:56px;
+    padding:6px 4px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    color:var(--ink);
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .disc-type-select:focus{outline:none;border-color:var(--till-green);}
   .disc-row .disc-note{font-size:10px;color:var(--danger);}
   .discall-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-soft);}
   .discall-row .discall-input{
@@ -791,7 +803,11 @@
       <div class="form-row form-row-produk">
         <input type="text" id="newProdName" placeholder="Nama produk">
         <input type="number" id="newProdPrice" placeholder="Harga (Rp)" min="0">
-        <input type="number" id="newProdDisc" placeholder="Diskon %" min="0" max="100" title="Diskon default produk (persen)">
+        <input type="number" id="newProdDisc" placeholder="Diskon" min="0" title="Diskon default produk">
+        <select id="newProdDiscType" title="Jenis diskon">
+          <option value="percent" selected>%</option>
+          <option value="amount">Rp</option>
+        </select>
         <input type="number" id="newProdStock" placeholder="Stok awal" min="0">
         <select id="newProdWarehouse"></select>
         <input type="text" id="newProdCat" placeholder="Kategori">
@@ -1214,7 +1230,7 @@ function renderProductGrid(){
     card.className = 'product-card' + (isOut ? ' out-of-stock' : '');
     card.disabled = isOut;
     card.innerHTML = `
-      <div class="pname">${escapeHtml(p.name)}${(p.disc||0)>0 ? `<span class="disc-badge">-${p.disc}%</span>` : ''}</div>
+      <div class="pname">${escapeHtml(p.name)}${(p.disc||0)>0 ? `<span class="disc-badge">${discLabel(p)}</span>` : ''}</div>
       <div class="pcat">${escapeHtml(p.category||'Lainnya')}</div>
       <div class="pprice">${fmtRp(p.price)}</div>
       <div class="pstock${stockClass}">${isOut ? 'Stok habis' : 'Stok: ' + stock}</div>
@@ -1231,7 +1247,8 @@ document.getElementById('searchInput').addEventListener('input', e=>{
 /* ============ CART ============ */
 let lastCompletedTrx = null;
 let showDone = false;
-let discAllRate = 0; // diskon menyeluruh (% dari subtotal setelah diskon per produk)
+let discAllRate = 0; // nilai diskon menyeluruh
+let discAllType = 'percent'; // 'percent' | 'amount'
 let payMode = 'lunas'; // 'lunas' | 'hutang'
 let piutangFilter = 'semua'; // 'semua' | 'hutang' | 'lunas'
 
@@ -1244,13 +1261,26 @@ function trxRemaining(t){
 }
 
 function lineSubtotal(item){ return item.price * item.qty; }
-function lineDiscRate(item){ return Math.min(100, Math.max(0, Number(item.disc)||0)); }
-function lineDiscAmount(item){ return lineSubtotal(item) * lineDiscRate(item) / 100; }
+// tipe diskon: 'percent' (default, kompatibel data lama) | 'amount'
+function discTypeOf(item){ return (item && item.discType === 'amount') ? 'amount' : 'percent'; }
+// nilai diskon mentah (persen atau nominal rupiah)
+function lineDiscValue(item){ return Math.max(0, Number(item.disc)||0); }
+// potongan rupiah per baris item
+function lineDiscAmount(item){
+  const st = lineSubtotal(item);
+  if(discTypeOf(item)==='amount') return Math.min(lineDiscValue(item), st);
+  return st * Math.min(100, lineDiscValue(item)) / 100;
+}
 function lineAfterDisc(item){ return lineSubtotal(item) - lineDiscAmount(item); }
+// label diskon utk badge/struk: "-10%" atau "-Rp 2.000"
+function discLabel(item){
+  return discTypeOf(item)==='amount' ? '-' + fmtRp(lineDiscValue(item)) : '-' + lineDiscValue(item) + '%';
+}
 function cartSubtotal(){ return cart.reduce((s,c)=>s+lineSubtotal(c),0); }
 function cartLineDisc(){ return cart.reduce((s,c)=>s+lineDiscAmount(c),0); }
 function cartAllDisc(){
   const afterLine = cartSubtotal() - cartLineDisc();
+  if(discAllType==='amount') return Math.min(Math.max(0, discAllRate), afterLine);
   return afterLine * Math.min(100, Math.max(0, discAllRate)) / 100;
 }
 function cartTotal(){
@@ -1303,7 +1333,7 @@ function addToCart(product){
   }
   let item = existing;
   if(!item){
-    item = {id:product.id, name:product.name, price:product.price, qty:0, disc: product.disc||0, allocations:{}};
+    item = {id:product.id, name:product.name, price:product.price, qty:0, disc: product.disc||0, discType: product.discType||'percent', allocations:{}};
     cart.push(item);
   }
   autoAllocate(item, product, 1);
@@ -1434,7 +1464,7 @@ function renderCart(){
     <div class="totals-row"><span>Jumlah item</span><span id="itemCount">0</span></div>
     <div class="totals-row"><span>Subtotal</span><span id="subtotalVal">Rp 0</span></div>
     <div class="totals-row" id="lineDiscRow" style="display:none"><span>Diskon produk</span><span id="lineDiscVal">Rp 0</span></div>
-    <div class="totals-row discall-row"><span>Diskon semua <input type="number" id="discAllInput" class="discall-input" min="0" max="100" value="0" title="Diskon menyeluruh dari subtotal (%)"> %</span><span id="discAllVal">Rp 0</span></div>
+    <div class="totals-row discall-row"><span>Diskon semua <input type="number" id="discAllInput" class="discall-input" min="0" value="0" title="Diskon menyeluruh dari subtotal"> <select id="discAllTypeSel" class="disc-type-select" title="Jenis diskon"><option value="percent" selected>%</option><option value="amount">Rp</option></select></span><span id="discAllVal">Rp 0</span></div>
     <div class="totals-row grand"><span>Total</span><span id="cartTotal">Rp 0</span></div>
     <div class="pay-block">
       <div class="pay-mode-row">
@@ -1474,12 +1504,13 @@ function renderCart(){
       row.className = 'cart-item';
       const allocEntries = Object.entries(item.allocations||{});
       const showWhBtn = warehouses.length > 1;
-      const disc = lineDiscRate(item);
+      const disc = lineDiscValue(item);
+      const dType = discTypeOf(item);
       const allocText = allocEntries.length
         ? allocEntries.map(([whId,q])=>`<span class="alloc-chip">${escapeHtml(whName(whId))}: ${q}</span>`).join('')
         : '<span class="alloc-chip">Belum teralokasi</span>';
       row.innerHTML = `
-        <div class="ci-name">${escapeHtml(item.name)}${disc>0 ? `<span class="disc-badge">-${disc}%</span>` : ''}</div>
+        <div class="ci-name">${escapeHtml(item.name)}${disc>0 ? `<span class="disc-badge">${discLabel(item)}</span>` : ''}</div>
         <button class="ci-remove" title="Hapus">×</button>
         <div class="qty-row">
           <div class="qty-controls">
@@ -1491,22 +1522,34 @@ function renderCart(){
         </div>
         <div class="disc-row">
           <span>Diskon</span>
-          <input type="number" class="disc-input" data-disc min="0" max="100" value="${disc}" title="Diskon per produk (%)">
-          <span>%</span>
+          <input type="number" class="disc-input" data-disc min="0" value="${disc}" title="Diskon per produk">
+          <select class="disc-type-select" data-disctype title="Jenis diskon">
+            <option value="percent" ${dType==='percent' ? 'selected' : ''}>%</option>
+            <option value="amount" ${dType==='amount' ? 'selected' : ''}>Rp</option>
+          </select>
           <span class="disc-note" data-discnote style="${disc>0 ? '' : 'display:none'}">−${fmtRp(lineDiscAmount(item))}</span>
         </div>
         <div class="alloc-row">${allocText}${showWhBtn ? '<button class="wh-btn">Atur Gudang</button>' : ''}</div>
       `;
       // ubah diskon per item tanpa re-render penuh agar input tetap fokus saat mengetik
       const discInput = row.querySelector('[data-disc]');
-      discInput.addEventListener('input', ()=>{
-        item.disc = Math.min(100, Math.max(0, Number(discInput.value)||0));
+      const discSel = row.querySelector('[data-disctype]');
+      const refreshRow = ()=>{
+        item.disc = Math.max(0, Number(discInput.value)||0);
+        item.discType = discSel.value;
         row.querySelector('[data-linetotal]').textContent = fmtRp(lineAfterDisc(item));
         const note = row.querySelector('[data-discnote]');
         note.style.display = item.disc>0 ? '' : 'none';
         note.textContent = '−' + fmtRp(lineDiscAmount(item));
+        const badge = row.querySelector('.disc-badge');
+        if(item.disc>0){
+          if(badge) badge.textContent = discLabel(item);
+          else row.querySelector('.ci-name').insertAdjacentHTML('beforeend', `<span class="disc-badge">${discLabel(item)}</span>`);
+        }else if(badge) badge.remove();
         updateCartTotals();
-      });
+      };
+      discInput.addEventListener('input', refreshRow);
+      discSel.addEventListener('change', refreshRow);
       row.querySelector('.ci-remove').addEventListener('click', ()=>removeFromCart(item.id));
       row.querySelector('.minus').addEventListener('click', ()=>changeQty(item.id,-1));
       row.querySelector('.plus').addEventListener('click', ()=>changeQty(item.id,1));
@@ -1531,6 +1574,8 @@ function updateCartTotals(){
   }
   const discAllInput = document.getElementById('discAllInput');
   if(discAllInput) discAllInput.value = discAllRate;
+  const discAllTypeSel = document.getElementById('discAllTypeSel');
+  if(discAllTypeSel) discAllTypeSel.value = discAllType;
   document.getElementById('discAllVal').textContent = allDisc>0 ? '−' + fmtRp(allDisc) : 'Rp 0';
   document.getElementById('cartTotal').textContent = fmtRp(total);
   document.getElementById('checkoutBtn').disabled = cart.length===0;
@@ -1539,7 +1584,11 @@ function updateCartTotals(){
 function wireCartControls(){
   document.getElementById('cashInput').addEventListener('input', updateChange);
   document.getElementById('discAllInput').addEventListener('input', ()=>{
-    discAllRate = Math.min(100, Math.max(0, Number(document.getElementById('discAllInput').value)||0));
+    discAllRate = Math.max(0, Number(document.getElementById('discAllInput').value)||0);
+    updateCartTotals();
+  });
+  document.getElementById('discAllTypeSel').addEventListener('change', (e)=>{
+    discAllType = e.target.value;
     updateCartTotals();
   });
   document.getElementById('modeLunasBtn').addEventListener('click', ()=>setPayMode('lunas'));
@@ -1549,6 +1598,7 @@ function wireCartControls(){
   document.getElementById('clearCartBtn').addEventListener('click', ()=>{
     cart = [];
     discAllRate = 0;
+    discAllType = 'percent';
     if(payMode !== 'lunas') setPayMode('lunas');
     document.getElementById('cashInput').value = '';
     renderCart();
@@ -1631,13 +1681,14 @@ async function doCheckout(){
       date: new Date().toISOString(),
       cashier: cashierName.trim() || 'Tidak diketahui',
       items: cart.map(c=>({
-        name:c.name, price:c.price, qty:c.qty, disc:c.disc||0,
+        name:c.name, price:c.price, qty:c.qty, disc:c.disc||0, discType:c.discType||'percent',
         subtotal:lineSubtotal(c), lineTotal:lineAfterDisc(c), discAmount:lineDiscAmount(c),
         allocations: Object.entries(c.allocations||{}).map(([whId,qty])=>({whId, whName:whName(whId), qty}))
       })),
       subtotal,
       discAmount,
       discAll: discAllRate,
+      discAllType: discAllType,
       total,
       paymentMode: 'hutang',
       customerName: name,
@@ -1658,13 +1709,14 @@ async function doCheckout(){
       date: new Date().toISOString(),
       cashier: cashierName.trim() || 'Tidak diketahui',
       items: cart.map(c=>({
-        name:c.name, price:c.price, qty:c.qty, disc:c.disc||0,
+        name:c.name, price:c.price, qty:c.qty, disc:c.disc||0, discType:c.discType||'percent',
         subtotal:lineSubtotal(c), lineTotal:lineAfterDisc(c), discAmount:lineDiscAmount(c),
         allocations: Object.entries(c.allocations||{}).map(([whId,qty])=>({whId, whName:whName(whId), qty}))
       })),
       subtotal,
       discAmount,
       discAll: discAllRate,
+      discAllType: discAllType,
       total,
       paymentMode: 'lunas',
       cash,
@@ -1687,6 +1739,7 @@ async function doCheckout(){
 
   cart = [];
   discAllRate = 0;
+  discAllType = 'percent';
   if(payMode !== 'lunas') payMode = 'lunas';
   lastCompletedTrx = trx;
   showDone = true;
@@ -1700,7 +1753,8 @@ async function doCheckout(){
 document.getElementById('addProdBtn').addEventListener('click', async ()=>{
   const name = document.getElementById('newProdName').value.trim();
   const price = Number(document.getElementById('newProdPrice').value);
-  const disc = Math.min(100, Math.max(0, Number(document.getElementById('newProdDisc').value)||0));
+  const disc = Math.max(0, Number(document.getElementById('newProdDisc').value)||0);
+  const discType = document.getElementById('newProdDiscType').value;
   const stock = Number(document.getElementById('newProdStock').value) || 0;
   const whId = document.getElementById('newProdWarehouse').value;
   const cat = document.getElementById('newProdCat').value.trim() || 'Lainnya';
@@ -1712,11 +1766,12 @@ document.getElementById('addProdBtn').addEventListener('click', async ()=>{
     showToast('Tambahkan gudang terlebih dahulu di menu Gudang');
     return;
   }
-  products.push({id:uid(), name, price, disc, category:cat, stock:{[whId]: stock}});
+  products.push({id:uid(), name, price, disc, discType, category:cat, stock:{[whId]: stock}});
   await saveProducts();
   document.getElementById('newProdName').value='';
   document.getElementById('newProdPrice').value='';
   document.getElementById('newProdDisc').value='';
+  document.getElementById('newProdDiscType').value='percent';
   document.getElementById('newProdStock').value='';
   document.getElementById('newProdCat').value='';
   renderProdukTable();
@@ -1744,7 +1799,7 @@ function renderProdukTable(){
       <td>${escapeHtml(p.name)}</td>
       <td><span class="badge">${escapeHtml(p.category||'Lainnya')}</span></td>
       <td class="price-cell">${fmtRp(p.price)}</td>
-      <td class="price-cell">${(p.disc||0)>0 ? `<span style="color:var(--till-green-dark);font-weight:700;">${p.disc}%</span>` : '0%'}</td>
+      <td class="price-cell">${(p.disc||0)>0 ? `<span style="color:var(--till-green-dark);font-weight:700;">${discLabel(p)}</span>` : '0%'}</td>
       <td><span class="stock-badge ${badgeClass}">${badgeLabel}</span></td>
       <td>
         <div class="row-actions">
@@ -1760,21 +1815,30 @@ function renderProdukTable(){
         </div>
       </td>
     `;
-    tr.querySelector('.edit-btn').addEventListener('click', async ()=>{
-      const newPrice = prompt(`Harga baru untuk "${p.name}" (saat ini ${fmtRp(p.price)}):`, p.price);
-      if(newPrice===null) return;
-      const val = Number(newPrice);
-      if(!val || val<=0){ showToast('Harga tidak valid'); return; }
-      p.price = val;
-      const newDisc = prompt(`Diskon % untuk "${p.name}" (saat ini ${p.disc||0}%):`, p.disc||0);
-      if(newDisc!==null){
-        const dv = Math.min(100, Math.max(0, Number(newDisc)||0));
-        p.disc = dv;
-      }
-      await saveProducts();
-      renderProdukTable();
-      renderProductGrid();
-      showToast('Harga & diskon diperbarui');
+    tr.querySelector('.edit-btn').addEventListener('click', ()=>{
+      openModal(`
+        <div class="modal-title">✏️ Edit Produk</div>
+        <div class="modal-sub">${escapeHtml(p.name)}</div>
+        <div class="pay-form-row"><label>Harga (Rp)</label><input type="number" id="editProdPrice" value="${p.price}" min="0"></div>
+        <div class="pay-form-row"><label>Diskon</label><input type="number" id="editProdDisc" value="${p.disc||0}" min="0"></div>
+        <div class="pay-form-row"><label>Jenis diskon</label><select id="editProdDiscType" class="disc-type-select" style="width:100%;"><option value="percent" ${discTypeOf(p)==='percent'?'selected':''}>%</option><option value="amount" ${discTypeOf(p)==='amount'?'selected':''}>Rp</option></select></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+          <button class="btn btn-primary" id="saveEditProdBtn">Simpan</button>
+        </div>
+      `);
+      document.getElementById('saveEditProdBtn').addEventListener('click', async ()=>{
+        const price = Number(document.getElementById('editProdPrice').value);
+        if(!price || price<=0){ showToast('Harga tidak valid'); return; }
+        p.price = price;
+        p.disc = Math.max(0, Number(document.getElementById('editProdDisc').value)||0);
+        p.discType = document.getElementById('editProdDiscType').value;
+        await saveProducts();
+        closeModal();
+        renderProdukTable();
+        renderProductGrid();
+        showToast('Produk diperbarui');
+      });
     });
     tr.querySelector('.stock-btn').addEventListener('click', ()=>openProductStockModal(p.id));
     tr.querySelector('.del-btn').addEventListener('click', async ()=>{
@@ -2497,8 +2561,9 @@ function buildReceiptText(trx){
   lines.push('');
   trx.items.forEach(it=>{
     const disc = it.disc||0;
+    const dLabel = disc>0 ? (discTypeOf(it)==='amount' ? ` -${fmtRp(disc)}` : ` -${disc}%`) : '';
     const sub = it.lineTotal != null ? it.lineTotal : it.subtotal;
-    lines.push(`${it.name}  (${it.qty} x ${fmtRp(it.price)}${disc>0 ? ` -${disc}%` : ''}) = ${fmtRp(sub)}`);
+    lines.push(`${it.name}  (${it.qty} x ${fmtRp(it.price)}${dLabel}) = ${fmtRp(sub)}`);
   });
   lines.push('');
   if(trx.discAmount>0) lines.push(`Diskon: −${fmtRp(trx.discAmount)}`);
@@ -2546,11 +2611,12 @@ function printReceipt(mode, trx){
   items.forEach(it=>{
     const qty = it.qty;
     const price = it.price;
-    const disc = mode === 'preview' ? lineDiscRate(it) : (it.disc||0);
+    const disc = mode === 'preview' ? lineDiscValue(it) : (it.disc||0);
+    const dLabel = disc>0 ? (discTypeOf(it)==='amount' ? ` (-${fmtRp(disc)})` : ` (-${disc}%)`) : '';
     const sub = mode === 'preview' ? lineAfterDisc(it) : (it.lineTotal != null ? it.lineTotal : it.subtotal);
     itemsHtml += `
       <div class="print-item-name">${escapeHtml(it.name)}</div>
-      <div class="print-line"><span>${qty} x ${fmtRp(price)}${disc>0 ? ` (-${disc}%)` : ''}</span><span>${fmtRp(sub)}</span></div>
+      <div class="print-line"><span>${qty} x ${fmtRp(price)}${dLabel}</span><span>${fmtRp(sub)}</span></div>
     `;
   });
 
