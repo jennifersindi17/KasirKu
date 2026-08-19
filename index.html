@@ -735,6 +735,26 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
     Piutang
   </button>
+  <button class="nav-btn" data-view="pelanggan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/><path d="M2 22a10 10 0 0 1 20 0"/></svg>
+    Pelanggan
+  </button>
+  <button class="nav-btn" data-view="barang-masuk">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 2l1.5-5.5M12 22l1.5-5.5"/></svg>
+    Barang Masuk
+  </button>
+  <button class="nav-btn" data-view="transfer-gudang">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    Transfer Gudang
+  </button>
+  <button class="nav-btn" data-view="supplier">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-3 9 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    Supplier
+  </button>
+  <button class="nav-btn" data-view="customer-account">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="3" cy="11" r="4"/><path d="M7 11v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/><path d="M21 11v7a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-7"/></svg>
+    Customer Account
+  </button>
   <button class="nav-btn" data-view="laporan">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
     Laporan
@@ -928,6 +948,202 @@
     </div>
   </div>
 
+  <!-- ===== VIEW: PELANGGAN ===== -->
+  <div class="view" id="view-pelanggan">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Pelanggan 👥</h1>
+        <div class="page-sub">Database pelanggan — nama &amp; nomor WhatsApp (otomatis tersimpan saat transaksi hutang)</div>
+      </div>
+    </div>
+
+    <div class="summary-cards">
+      <div class="stat-card"><div class="label">Total Pelanggan</div><div class="value" id="custTotal">0</div></div>
+      <div class="stat-card"><div class="label">Dengan No. WhatsApp</div><div class="value" id="custWithWa">0</div></div>
+      <div class="stat-card"><div class="label">Pelanggan Berhutang</div><div class="value" id="custDebtors">0</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="cust-add-form">
+        <input type="text" id="newCustName" placeholder="Nama pelanggan baru">
+        <input type="tel" id="newCustPhone" placeholder="No. WhatsApp 08xxxxxxxxxx">
+        <button class="btn btn-primary" id="addCustBtn">+ Tambah</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Nama</th><th>No. WhatsApp</th><th>Transaksi Hutang</th><th>Piutang Aktif</th><th></th></tr>
+        </thead>
+        <tbody id="custTableBody"></tbody>
+      </table>
+      <div class="empty-note" id="custEmptyNote" style="display:none;">Belum ada pelanggan. Pelanggan otomatis tersimpan saat transaksi hutang di kasir.</div>
+    </div>
+  </div>
+
+  <!-- ===== VIEW: BARANG MASUK ===== -->
+  <div class="view" id="view-barang-masuk">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Barang Masuk</h1>
+        <div class="page-sub">Daftar dan catat barang masuk gudang</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="add-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nama Barang</label>
+            <input type="text" id="barang-masuk-nama" placeholder="Nama barang">
+          </div>
+          <div class="form-group">
+            <label>Jumlah</label>
+            <input type="number" id="barang-masuk-jumlah" min="1" value="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Gudang Tujuan</label>
+            <select id="barang-masuk-gudang"></select>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="barang-masuk-btn-tambah">Tambah Masuk</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>No</th><th>Nama Barang</th><th>Jumlah</th><th>Gudang</th><th></th></tr>
+        </thead>
+        <tbody id="barang-masuk-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== VIEW: TRANSFER GUDANG ===== -->
+  <div class="view" id="view-transfer-gudang">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Transfer Gudang</h1>
+        <div class="page-sub">Transfer stok antar gudang</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="add-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Barang</label>
+            <select id="transfer-barang"></select>
+          </div>
+          <div class="form-group">
+            <label>Dari Gudang</label>
+            <select id="transfer-dari"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ke Gudang</label>
+            <select id="transfer-ke"></select>
+          </div>
+          <div class="form-group">
+            <label>Jumlah</label>
+            <input type="number" id="transfer-jumlah" min="1" value="1">
+          </div>
+        </div>
+        <button class="btn btn-primary" id="transfer-btn-transfer">Transfer</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>No</th><th>Barang</th><th>Dari</th><th>Ke</th><th>Jumlah</th><th></th></tr>
+        </thead>
+        <tbody id="transfer-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== VIEW: SUPPLIER ===== -->
+  <div class="view" id="view-supplier">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Supplier</h1>
+        <div class="page-sub">Daftel dan kelola data supplier</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="add-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nama Supplier</label>
+            <input type="text" id="supplier-nama" placeholder="Nama supplier">
+          </div>
+          <div class="form-group">
+            <label>No. Telepon</label>
+            <input type="tel" id="supplier-phone" placeholder="08xxxxxxxxxx">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Kontak</label>
+            <input type="text" id="supplier-kontak" placeholder="Nama kontak">
+          </div>
+        </div>
+        <button class="btn btn-primary" id="supplier-btn-simpan">Simpan Supplier</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>No</th><th>Nama</th><th>No. Telepon</th><th>Kontak</th><th></th></tr>
+        </thead>
+        <tbody id="supplier-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== VIEW: CUSTOMER ACCOUNT ===== -->
+  <div class="view" id="view-customer-account">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Customer Account</h1>
+        <div class="page-sub">Data customer account untuk pelayanan</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="add-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nama Customer</label>
+            <input type="text" id="customer-account-nama" placeholder="Nama customer">
+          </div>
+          <div class="form-group">
+            <label>No. Telepon</label>
+            <input type="tel" id="customer-account-phone" placeholder="08xxxxxxxxxx">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Kategori</label>
+            <select id="customer-account-kategori">
+              <option value="Distributor">Distributor</option>
+              <option value="Retail">Retail</option>
+              <option value="Kantor">Kantor</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="customer-account-btn-simpan">Simpan Customer</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>No</th><th>Nama</th><th>No. Telepon</th><th>Kategori</th><th></th></tr>
+        </thead>
+        <tbody id="customer-account-table"></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ===== VIEW: LAPORAN ===== -->
   <div class="view" id="view-laporan">
     <div class="page-head">
@@ -1011,6 +1227,8 @@ let products = [];
 let transactions = [];
 let warehouses = [];
 let opnameRecords = [];
+let suppliers = []; // {id, name, phone, contactPerson, createdAt}
+let customerAccounts = []; // {id, name, phone, category, createdAt}
 let cart = []; // {id, name, price, qty, allocations:[{whId, qty}]}
 let activeCategory = 'Semua';
 let searchTerm = '';
@@ -1069,6 +1287,11 @@ async function loadData(){
     transactions = t ? JSON.parse(t.value) : [];
   }catch(e){ transactions = []; }
   try{
+    const cs = await window.storage.get('kasir_customers', false);
+    customers = cs ? JSON.parse(cs.value) : [];
+  }catch(e){ customers = []; }
+  ensureCustomerKeys();
+  try{
     const o = await window.storage.get('kasir_opname', false);
     opnameRecords = o ? JSON.parse(o.value) : [];
   }catch(e){ opnameRecords = []; }
@@ -1126,10 +1349,30 @@ async function saveOpname(){
   try{ await window.storage.set('kasir_opname', JSON.stringify(opnameRecords), false); }
   catch(e){ showToast('Gagal menyimpan riwayat opname'); }
 }
+async function saveSuppliers(){
+  try{ await window.storage.set('kasir_suppliers', JSON.stringify(suppliers), false); }
+  catch(e){ showToast('Gagal menyimpan data supplier'); }
+}
+async function saveCustomerAccounts(){
+  try{ await window.storage.set('kasir_customer_accounts', JSON.stringify(customerAccounts), false); }
+  catch(e){ showToast('Gagal menyimpan data customer'); }
+}
 function defaultWarehouses(){
   return [
     {id:uid(), name:'Gudang Pusat', address:'Lokasi utama'},
     {id:uid(), name:'Gudang Cabang', address:'Lokasi cabang'},
+  ];
+}
+function defaultSuppliers(){
+  return [
+    {id:uid(), name:'Supplier A', phone:'081234567890', contactPerson:'Pak Budi'},
+    {id:uid(), name:'Supplier B', phone:'081234567891', contactPerson:'Ibu Sari'},
+  ];
+}
+function defaultCustomerAccounts(){
+  return [
+    {id:uid(), name:'Customer X', phone:'081234567892', category:'Distributor'},
+    {id:uid(), name:'Customer Y', phone:'081234567893', category:'Retail'},
   ];
 }
 function defaultProducts(){
@@ -1161,6 +1404,7 @@ document.querySelectorAll('.nav-btn').forEach(btn=>{
     if(btn.dataset.view==='gudang') renderGudangView();
     if(btn.dataset.view==='opname') renderOpnameView();
     if(btn.dataset.view==='piutang') renderPiutang();
+    if(btn.dataset.view==='pelanggan') renderPelanggan();
   });
 });
 
@@ -1251,6 +1495,7 @@ let discAllRate = 0; // nilai diskon menyeluruh
 let discAllType = 'percent'; // 'percent' | 'amount'
 let payMode = 'lunas'; // 'lunas' | 'hutang'
 let piutangFilter = 'semua'; // 'semua' | 'hutang' | 'lunas'
+let customers = []; // database pelanggan: {id, name, key, phone, createdAt}
 
 function trxStatus(t){
   if(t.paymentMode !== 'hutang') return 'lunas';
@@ -1440,7 +1685,7 @@ function renderCart(){
         `}
         <div class="pay-block" style="margin-top:14px;text-align:left;">
           <label for="waPhoneInput">No. WhatsApp pelanggan (opsional)</label>
-          <input type="tel" id="waPhoneInput" placeholder="08xxxxxxxxxx">
+          <input type="tel" id="waPhoneInput" placeholder="08xxxxxxxxxx" value="${escapeHtml(t.customerPhone||'')}">
         </div>
         <div class="done-actions">
           <button class="btn btn-primary" id="printFinalBtn" style="margin-top:0;">🖨 Cetak Struk</button>
@@ -1449,6 +1694,15 @@ function renderCart(){
         </div>
       </div>
     `;
+    // auto-fill no. WA dari data transaksi hutang / database pelanggan
+    const waInput = document.getElementById('waPhoneInput');
+    if(waInput){
+      if(t.customerPhone) waInput.value = t.customerPhone;
+      else if(t.customerName){
+        const c = customers.find(x=>x.key===customerKey(t.customerName));
+        if(c && c.phone) waInput.value = c.phone;
+      }
+    }
     document.getElementById('printFinalBtn').addEventListener('click', ()=>printReceipt('final', t));
     document.getElementById('sendWaBtn').addEventListener('click', ()=>sendWhatsAppReceipt(t));
     document.getElementById('newTrxBtn').addEventListener('click', ()=>{
@@ -1636,6 +1890,23 @@ function setPayMode(mode){
   document.getElementById('cashFields').style.display = mode==='lunas' ? 'block' : 'none';
   document.getElementById('creditFields').classList.toggle('show', mode==='hutang');
   updateChange();
+  
+  // Auto-fill credit fields from customer database when hutang mode is selected
+  if(mode === 'hutang'){
+    const nameInput = document.getElementById('creditNameInput');
+    const phoneInput = document.getElementById('creditPhoneInput');
+    if(nameInput && phoneInput){
+      // Try to find customer by name if already entered, otherwise leave blank for user to select
+      const name = nameInput.value.trim();
+      if(name && name.length > 2){
+        const c = customers.find(x=>x.key===customerKey(name));
+        if(c){
+          nameInput.value = c.name;
+          phoneInput.value = c.phone || '';
+        }
+      }
+    }
+  }
 }
 function validateStockBeforeCheckout(){
   for(const item of cart){
@@ -1724,6 +1995,12 @@ async function doCheckout(){
     };
   }
   transactions.unshift(trx);
+
+  // simpan/perbarui database pelanggan (nama + no. WhatsApp) saat transaksi hutang
+  if(trx.paymentMode === 'hutang' && trx.customerName){
+    upsertCustomer(trx.customerName, trx.customerPhone || '');
+    await saveCustomers();
+  }
 
   // kurangi stok produk yang terjual, sesuai alokasi gudang masing-masing
   cart.forEach(item=>{
@@ -2159,6 +2436,7 @@ function renderPiutang(){
       <td>
         <div class="piutang-actions">
           ${st==='hutang' ? `<button class="btn btn-primary pay-btn" style="padding:6px 10px;font-size:12px;">💸 Bayar</button>` : ''}
+          ${st==='hutang' ? `<button class="btn btn-whatsapp cycle-btn" style="padding:6px 10px;font-size:12px;margin-left:8px;" onclick="sendCycleReceipt('${t.id}')">💬 Cicilan</button>` : ''}''}
           <button class="btn btn-ghost history-btn" style="padding:6px 10px;font-size:12px;">📜 Riwayat</button>
         </div>
       </td>
@@ -2189,24 +2467,40 @@ function openPayModal(t){
       <label>Tanggal pembayaran</label>
       <input type="date" id="payDateInput" value="${today}">
     </div>
+    <div class="pay-form-row">
+      <label>No. WhatsApp pelanggan (untuk kirim struk)</label>
+      <input type="tel" id="payWaInput" placeholder="08xxxxxxxxxx" value="${escapeHtml(t.customerPhone||'')}">
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="payCancelBtn">Batal</button>
       <button class="btn btn-primary" id="confirmPayBtn">Simpan Pembayaran</button>
+      <button class="btn btn-whatsapp" id="paySendWaBtn">💬 Simpan & Kirim Struk</button>
     </div>
   `);
   document.getElementById('payCancelBtn').addEventListener('click', closeModal);
-  document.getElementById('confirmPayBtn').addEventListener('click', async ()=>{
+  const recordPayment = async (sendStruk)=>{
+    const wa = (document.getElementById('payWaInput').value||'').trim();
+    if(sendStruk && !wa){ showToast('Isi nomor WhatsApp pelanggan dulu'); return null; }
     const amount = Math.min(remaining, Math.max(0, Number(document.getElementById('payAmountInput').value)||0));
-    if(amount<=0){ showToast('Jumlah pembayaran harus lebih dari 0'); return; }
+    if(amount<=0){ showToast('Jumlah pembayaran harus lebih dari 0'); return null; }
     const date = document.getElementById('payDateInput').value;
-    if(!date){ showToast('Pilih tanggal pembayaran'); return; }
+    if(!date){ showToast('Pilih tanggal pembayaran'); return null; }
     t.payments.push({amount, date: new Date(date+'T12:00:00').toISOString()});
     t.remaining = remaining - amount;
     if(t.remaining<=0){ t.remaining = 0; t.status = 'lunas'; }
+    if(wa) t.customerPhone = wa;
+    if(t.customerName){ upsertCustomer(t.customerName, wa); }
+    await saveCustomers();
     await saveTransactions();
     closeModal();
     renderPiutang();
-    showToast('Angsuran dicatat' + (t.status==='lunas' ? ' — hutang LUNAS 🎉' : ''));
+    showToast('Angsuran dicatat' + (t.remaining<=0 ? ' — hutang LUNAS 🎉' : ''));
+    return wa;
+  };
+  document.getElementById('confirmPayBtn').addEventListener('click', ()=>recordPayment(false));
+  document.getElementById('paySendWaBtn').addEventListener('click', async ()=>{
+    const wa = await recordPayment(true);
+    if(wa) openWaChat(wa, buildReceiptText(t)); // t sudah updated: sisa tagihan terbaru
   });
 }
 function openHistoryModal(t){
@@ -2230,12 +2524,102 @@ function openHistoryModal(t){
     <div style="margin:6px 0 10px;max-height:300px;overflow:auto;">${rows || '<div class="modal-sub">Belum ada pembayaran.</div>'}</div>
     <div class="totals-row grand"><span>Total dibayar</span><span>${fmtRp(paidTotal)}</span></div>
     <div class="totals-row"><span>Sisa tagihan</span><span>${fmtRp(trxRemaining(t))}</span></div>
+    <div class="pay-form-row">
+      <label>No. WhatsApp pelanggan</label>
+      <input type="tel" id="histWaInput" placeholder="08xxxxxxxxxx" value="${escapeHtml(t.customerPhone||'')}">
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="histCloseBtn">Tutup</button>
+      <button class="btn btn-whatsapp" id="histSendWaBtn">💬 Kirim Struk/Tagihan</button>
     </div>
   `);
   document.getElementById('histCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('histSendWaBtn').addEventListener('click', ()=>{
+    const wa = (document.getElementById('histWaInput').value||'').trim();
+    if(wa){
+      t.customerPhone = wa;
+      if(t.customerName){ upsertCustomer(t.customerName, wa); saveCustomers(); }
+    }
+    openWaChat(wa, buildReceiptText(t));
+  });
 }
+
+/* ============ PELANGGAN ============ */
+function customerKey(name){ return (name||'').trim().toLowerCase(); }
+function ensureCustomerKeys(){
+  // pastikan tiap pelanggan punya field key (nama lowercase) untuk pencocokan
+  let changed = false;
+  customers.forEach(c=>{
+    if(!c.key){ c.key = customerKey(c.name); changed = true; }
+  });
+  if(changed) saveCustomers();
+}
+function upsertCustomer(name, phone){
+  name = (name||'').trim();
+  if(!name) return null;
+  const key = customerKey(name);
+  const existing = customers.find(c=>c.key===key);
+  if(existing){
+    if(phone && existing.phone !== phone) existing.phone = phone.trim();
+    return existing;
+  }
+  const c = {id: uid(), name, key, phone: (phone||'').trim(), createdAt: new Date().toISOString()};
+  customers.push(c);
+  return c;
+}
+async function saveCustomers(){
+  try{ await window.storage.set('kasir_customers', JSON.stringify(customers), false); }
+  catch(e){ showToast('Gagal menyimpan pelanggan'); }
+}
+function renderPelanggan(){
+  // kartu statistik
+  document.getElementById('custTotal').textContent = customers.length;
+  document.getElementById('custWithWa').textContent = customers.filter(c=>c.phone).length;
+  const debtors = new Set();
+  transactions.filter(t=>t.paymentMode==='hutang' && trxStatus(t)==='hutang')
+    .forEach(t=>{ if(t.customerName) debtors.add(customerKey(t.customerName)); });
+  document.getElementById('custDebtors').textContent = debtors.size;
+  // tabel pelanggan
+  const body = document.getElementById('custTableBody');
+  body.innerHTML = '';
+  document.getElementById('custEmptyNote').style.display = customers.length===0 ? 'block' : 'none';
+  const sorted = [...customers].sort((a,b)=>a.name.localeCompare(b.name));
+  sorted.forEach(c=>{
+    const trxList = transactions.filter(t=>t.paymentMode==='hutang' && customerKey(t.customerName)===c.key);
+    const hutangCount = trxList.length;
+    const activeTotal = trxList.filter(t=>trxStatus(t)==='hutang').reduce((s,t)=>s+trxRemaining(t),0);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(c.name)}</td>
+      <td>${c.phone ? `<a href="https://wa.me/${normalizePhone(c.phone)}" target="_blank" style="color:#174A63;">${escapeHtml(c.phone)}</a>` : '<span style="color:#999;">—</span>'}</td>
+      <td>${hutangCount} transaksi</td>
+      <td class="price-cell ${activeTotal>0 ? 'text-warn' : ''}">${activeTotal>0 ? fmtRp(activeTotal) : '—'}</td>
+      <td><button class="btn btn-ghost cust-del-btn" style="padding:6px 10px;font-size:12px;">🗑</button></td>
+    `;
+    tr.querySelector('.cust-del-btn').addEventListener('click', async ()=>{
+      if(!confirm(`Hapus pelanggan "${c.name}" dari database?`)) return;
+      customers = customers.filter(x=>x.id!==c.id);
+      await saveCustomers();
+      renderPelanggan();
+      showToast('Pelanggan dihapus');
+    });
+    body.appendChild(tr);
+  });
+}
+document.getElementById('addCustBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('newCustName').value.trim();
+  if(!name){ showToast('Isi nama pelanggan dulu'); return; }
+  const phone = document.getElementById('newCustPhone').value.trim();
+  upsertCustomer(name, phone);
+  await saveCustomers();
+  document.getElementById('newCustName').value = '';
+  document.getElementById('newCustPhone').value = '';
+  renderPelanggan();
+  showToast('Pelanggan disimpan 👥');
+});
+document.getElementById('newCustPhone').addEventListener('keydown', e=>{
+  if(e.key==='Enter') document.getElementById('addCustBtn').click();
+});
 
 /* ============ LAPORAN ============ */
 let reportPeriod = 'day'; // 'day' | 'month' | 'year'
@@ -2588,15 +2972,83 @@ function normalizePhone(raw){
   else if(!digits.startsWith('62')) digits = '62' + digits;
   return digits;
 }
+function openWaChat(phone, text){
+  if(!phone){ showToast('Nomor WhatsApp tidak tersedia'); return; }
+  const norm = normalizePhone(phone);
+  if(norm.length < 10){ showToast('Nomor WhatsApp tidak valid'); return; }
+  const url = `https://wa.me/${norm}?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+}
 function sendWhatsAppReceipt(trx){
   const input = document.getElementById('waPhoneInput');
   const raw = (input?.value || '').trim();
   if(!raw){ showToast('Isi nomor WhatsApp pelanggan dulu'); return; }
-  const phone = normalizePhone(raw);
-  if(phone.length < 10){ showToast('Nomor WhatsApp tidak valid'); return; }
-  const text = buildReceiptText(trx);
-  const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  openWaChat(raw, buildReceiptText(trx));
+}
+
+/* ============ KIRIM STRUK CICILAN ============ */
+function sendCycleReceipt(trxId){
+  // Find the transaction by ID
+  const trx = transactions.find(t=>t.id===trxId);
+  if(!trx){ showToast('Transaksi tidak ditemukan'); return; }
+  
+  // Ambil nomor WA: dari transaksi, atau dari database pelanggan
+  let phone = trc.customerPhone || '';
+  let customerName = trc.customerName || '';
+  
+  if(!phone && customerName){
+    const c = customers.find(x=>x.key===customerKey(customerName));
+    if(c && c.phone) phone = c.phone;
+  }
+  
+  if(!phone){
+    showToast('Nomor WhatsApp pelanggan tidak tersedia');
+    return;
+  }
+  
+  // Bangun teks struk dengan riwayat pembayaran cicilan
+  const lines = [];
+  lines.push('*Kasir Duta Graha* 🎀');
+  lines.push(`No. Struk: ${trx.receiptNo}`);
+  lines.push(`Kasir: ${trx.cashier || '-'}`);
+  lines.push(`Tanggal: ${new Date(trx.date).toLocaleString('id-ID',{dateStyle:'medium', timeStyle:'short'})}`);
+  lines.push('');
+  lines.push('*Riwayat Pembayaran Cicilan:*');
+  
+  // Ambil semua pembayaran dari transaksi ini
+  const allPayments = (trx.payments || []);
+  let cumulativePaid = trx.dp || 0;
+  
+  allPayments.forEach((p, index)=>{
+    const pDate = new Date(p.date).toLocaleDateString('id-ID',{dateStyle:'long'});
+    lines.push(`#${index + 1} ${pDate}: +${fmtRp(p.amount)} (kumulatif: ${fmtRp(cumulativePaid)})`);
+    cumulativePaid += p.amount;
+  });
+  
+  lines.push('');
+  lines.push(`Sisa tagihan: ${fmtRp(trxRemaining(trx))} — belum lunas ⏳`);
+  lines.push(`Pelanggan: ${customerName || '-'}`);
+  lines.push('');
+  lines.push('Terima kasih atas kunjungan Anda 💕');
+  
+  const text = lines.join('\n');
+  const norm = normalizePhone(phone);
+  if(norm.length < 10){ showToast('Nomor WhatsApp tidak valid'); return; }
+  const url = `https://wa.me/${norm}?text=${encodeURIComponent(text)}`;
   window.open(url, '_blank');
+}function normalizePhone(phone){
+  return (phone||'').replace(/[^0-9+]/g, '');
+}
+
+function trxRemaining(t){
+  const dp = t.dp || 0;
+  const payments = t.payments || [];
+  const totalPaid = payments.reduce((s,p)=>s+p.amount,0);
+  return Math.max(0, (t.total||0) - dp - totalPaid);
+}
+
+function fmtRp(amount){
+  return new Intl.NumberFormat('id-ID',{style:'currency', currency:'IDR'}).format(amount||0);
 }
 
 /* ============ PRINT STRUK ============ */
